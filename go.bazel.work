@@ -1,0 +1,8 @@
+go 1.25.9
+
+use .
+
+// Keep application dependencies at the native go.mod selection when Bazel's
+// own Gazelle/rules_go tool modules request newer versions in their graph.
+replace github.com/fsnotify/fsnotify => github.com/fsnotify/fsnotify v1.4.9
+replace golang.org/x/net => golang.org/x/net v0.55.0

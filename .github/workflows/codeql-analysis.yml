@@ -107,14 +107,22 @@ jobs:
           --work-dir "$RUNNER_TEMP/gnmi-codeql" --evidence codeql-evidence \
           --database "$RUNNER_TEMP/codeql-db/go"
 
+    - name: Retain the actual container extraction database
+      if: always()
+      run: |
+        mkdir -p codeql-evidence/database
+        if [[ -f "$RUNNER_TEMP/codeql-db/go/src.zip" ]]; then
+          cp "$RUNNER_TEMP/codeql-db/go/src.zip" codeql-evidence/database/src.zip
+        fi
+        if [[ -d "$RUNNER_TEMP/codeql-db/go/log" ]]; then
+          cp -a "$RUNNER_TEMP/codeql-db/go/log" codeql-evidence/database/log
+        fi
+
     - name: Upload compilation and extraction evidence
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: gnmi-codeql-source-coverage
-        path: |
-          codeql-evidence
-          ${{ runner.temp }}/codeql-db/go/src.zip
-          ${{ runner.temp }}/codeql-db/go/log
+        path: codeql-evidence
         if-no-files-found: error
         retention-days: 14

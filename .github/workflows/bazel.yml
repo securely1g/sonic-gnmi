@@ -24,8 +24,6 @@ jobs:
       run:
         shell: bash
     env:
-      # Draft validation only; the linked prerequisite registrations must land.
-      SONIC_BAZEL_REGISTRY_REVISION: 7d231a980556f26487e6fa811559cb3a54b3c43b
       BAZELISK_GITHUB_TOKEN: ""
     steps:
       - name: Install execution tools
@@ -42,19 +40,15 @@ jobs:
           repository-cache: true
           disk-cache: gnmi-native-amd64
           cache-version: "8.5.1"
-      - name: Select the reviewed catalog and preserve cache settings
+      - name: Use the maintained registry and preserve cache settings
         run: |
           test "$(uname -m)" = x86_64
           test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = trixie
           python3 - <<'PY'
-          import os, re
           from pathlib import Path
-          revision = os.environ['SONIC_BAZEL_REGISTRY_REVISION']
-          assert re.fullmatch('[0-9a-f]{40}', revision)
           source = Path('.bazelrc').read_text()
           main = 'https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main'
           assert source.count(main) == 1
-          source = source.replace(main, main.removesuffix('main') + revision)
           caches = [line for line in (Path.home() / '.bazelrc').read_text().splitlines()
                     if line.startswith(('build --disk_cache=', 'common --repository_cache='))]
           assert len(caches) == 2

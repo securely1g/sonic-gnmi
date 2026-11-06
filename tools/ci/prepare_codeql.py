@@ -27,8 +27,8 @@ digest, run, unpack, owner = _native.digest, _native.run, _native.unpack, _nativ
 
 ROOT = Path(__file__).resolve().parents[2]
 TAGS = "gnmi_translib_write,gnmi_native_write"
-MGMT = {"revision": "af147e78654ad423ea0a2af268dfd0b71092b38b",
-        "sha256": "46db8d279e598457cc24cb2abf5b9313b2cb5ab1daf23aace72a9b39944e9424"}
+MGMT = {"revision": "05f83dcab8fe2e1a0e0fc37ac172b289d6968e2b",
+        "sha256": "a30cdd092457ec7579c0a6c07632a55f6fca8e749877fabb368d9fb75e41d98e"}
 LIBNL_RUNTIME_TARGETS = ["@libnl3//:libnl-3_pkg", "@libnl3//:libnl-route-3_pkg",
                          "@libnl3//:libnl-nf-3_pkg"]
 TARGETS = ["@sonic_swss_common//dist:libswsscommon_sdk",
@@ -71,13 +71,11 @@ def prepare(work, evidence):
     parents = run(["git", "show", "-s", "--format=%P", "HEAD"], cwd=ROOT).stdout.split()
     assert not os.environ.get("CI_HEAD_SHA") or os.environ["CI_HEAD_SHA"] in [head, *parents]
     assert not os.environ.get("CI_BASE_SHA") or os.environ["CI_BASE_SHA"] in parents
-    registry = os.environ["SONIC_BAZEL_REGISTRY_REVISION"]
-    assert re.fullmatch("[0-9a-f]{40}", registry)
-    # The workflow pins the same catalog as source CI; MODULE controls owners.
+    registry = "main"
+    # Source CI and CodeQL use the maintained registry; MODULE controls owners.
     rc = (ROOT / ".bazelrc").read_text()
     main = "https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main"
     assert rc.count(main) == 1
-    rc = rc.replace(main, main.removesuffix("main") + registry)
     home = Path.home() / ".bazelrc"
     if home.exists():
         rc += "\n" + "\n".join(line for line in home.read_text().splitlines()

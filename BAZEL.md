@@ -54,11 +54,14 @@ intentionally omitted for gNMI's existing glog1.2.4 selection.
 
 ## Consumers and dependency selection
 
-The root `.bazelrc` keeps the maintained SONiC registry plus BCR. Draft CI
-selects a reviewed catalog snapshot while the prerequisite source and registry
-PRs remain unmerged; those prerequisites must land before removing that
-selection. Do not use a green Draft run to claim that an unmodified main
-registry already contains them.
+The root `.bazelrc`, native source CI and CodeQL use the maintained SONiC
+registry plus BCR. Management Common `1.0.1-05f83dcab8fe2e1a0e0fc37ac172b289d6968e2b`
+and the public goyang/ygot owners are available there. The separate consumer
+selects the same Management Common, SWSS Common and build-infra owners as the
+source root; no temporary registry selection is needed for these checks.
+The independent subscription-race reproduction retains its historical owner
+inputs so it can compare the original baseline; it is separate evidence from
+the source-root and installed-consumer checks.
 
 A consuming Bzlmod root supplies its Go SDK and the exported SONiC Go patches.
 `tests/consumer` is a real separate module: it imports gNMI's public server and
@@ -66,8 +69,8 @@ DB configuration interfaces, and builds the owner runtime and debug TARs
 under `fastbuild` with `--strip=always`. The package targets retain their own
 debug inputs before splitting, so a consuming root cannot silently remove
 the detached symbols.
-Its MODULE demonstrates the public Management Common owner labels and root
-patch declarations. It needs no version overrides or synthetic copy of another
+Its MODULE demonstrates the public Management Common, goyang and ygot owner
+labels and the remaining root patch declarations. It needs no version overrides or synthetic copy of another
 owner's Go repository. Root-only development SDK/patch declarations are
 not executed when gNMI is a dependency.
 

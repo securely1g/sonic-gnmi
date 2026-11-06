@@ -20,6 +20,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/sonic-net/sonic-gnmi/common_utils"
 	"github.com/sonic-net/sonic-gnmi/internal/redisopts"
 	spb "github.com/sonic-net/sonic-gnmi/proto"
 	sdcfg "github.com/sonic-net/sonic-gnmi/sonic_db_config"
@@ -71,7 +72,15 @@ const (
 	opRemove
 )
 
+func getMixedDbWorkPath() string {
+	if dir := os.Getenv("TMPDIR"); dir != "" {
+		return dir
+	}
+	return common_utils.GNMI_WORK_PATH
+}
+
 var (
+	mixedDbWorkPath = getMixedDbWorkPath
 	supportedModels = []gnmipb.ModelData{
 		{
 			Name:         "sonic-db",
@@ -728,7 +737,7 @@ func NewMixedDbClient(paths []*gnmipb.Path, prefix *gnmipb.Path, origin string, 
 	container := dbkey.GetContainerName()
 	client.mapkey = ns + ":" + container
 	client.paths = paths
-	client.workPath = os.TempDir()
+	client.workPath = mixedDbWorkPath()
 
 	// continer is DPU ID
 	client.zmqClient, err = getZmqClient(container, zmqPort, vrf)

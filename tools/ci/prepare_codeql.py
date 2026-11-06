@@ -97,11 +97,11 @@ def prepare(work, evidence):
     bazel("build", TARGETS)
     hdr_expr = "labels(hdrs, @libyang//:public_headers)"
     headers = bazel("cquery", [hdr_expr, "--output=label"])
-    labels = [line.split()[0] for line in headers.splitlines() if line.startswith(("@", "@@"))]
+    labels = [line.split()[0] for line in headers.splitlines() if line.startswith("@")]
     if not labels:
         hdr_expr = 'labels(hdrs, filter("^@@?libyang", deps(@libyang//:public_headers, 1)))'
         headers = bazel("cquery", [hdr_expr, "--output=label"])
-        labels = [line.split()[0] for line in headers.splitlines() if line.startswith(("@", "@@"))]
+        labels = [line.split()[0] for line in headers.splitlines() if line.startswith("@")]
     assert labels
     bazel("build", labels)
     execution = work / "bazel-output/execroot/_main"
@@ -167,8 +167,8 @@ def prepare(work, evidence):
     for module, patches in [
         # The owner's 0001 patch changes only BUILD.bazel, which ordinary Go
         # does not consume. Preserve all selected Go-source patches here.
-        ("github.com/openconfig/ygot", ["ygot/ygot.patch", "0003-ygot-preserve-union-enum-order.patch"]),
-        ("github.com/openconfig/goyang", ["goyang/goyang.patch", "0002-goyang-preserve-declared-schema-order.patch"]),
+        ("github.com/openconfig/ygot", ["ygot/ygot.patch"]),
+        ("github.com/openconfig/goyang", ["goyang/goyang.patch"]),
         ("github.com/antchfx/jsonquery", ["jsonquery.patch"]),
         ("github.com/antchfx/xmlquery", ["xmlquery.patch"]),
         ("github.com/antchfx/xpath", ["xpath.patch"]),

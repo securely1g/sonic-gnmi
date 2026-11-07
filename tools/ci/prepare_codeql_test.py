@@ -12,7 +12,9 @@ class SharedGoOwnerTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             module = "github.com/openconfig/ygot"
-            source = root / "exec/external/openconfig_ygot+"
+            execution = root / "bazel-output/execroot/_main"
+            execution.mkdir(parents=True)
+            source = root / "bazel-output/external/openconfig_ygot+"
             source.mkdir(parents=True)
             (source / "go.mod").write_text("module " + module + "\n\ngo 1.25\n")
             (source / "patched.go").write_text("package ygot\n// selected SONiC patch\n")
@@ -21,7 +23,8 @@ class SharedGoOwnerTest(unittest.TestCase):
             destination.mkdir(parents=True)
             (destination / "obsolete.go").write_text("package stale\n")
             bazel = Mock(return_value="INFO: Analyzed target\nexternal/openconfig_ygot+\nINFO: Build completed\n")
-            report = vendor_owner(bazel, root / "exec", vendor, module, "@owner//ygot:ygot")
+            report = vendor_owner(bazel, execution, vendor, module, "@owner//ygot:ygot")
+            self.assertFalse((execution / "external").exists())
             self.assertFalse((destination / "obsolete.go").exists())
             self.assertEqual((destination / "patched.go").read_bytes(), (source / "patched.go").read_bytes())
             self.assertEqual(report["source_sha256"]["patched.go"], digest(source / "patched.go"))
@@ -31,7 +34,9 @@ class SharedGoOwnerTest(unittest.TestCase):
     def test_rejects_ambiguous_or_wrong_owner_before_replacing_vendor(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = root / "exec/external/owner+"
+            execution = root / "bazel-output/execroot/_main"
+            execution.mkdir(parents=True)
+            source = root / "bazel-output/external/owner+"
             source.mkdir(parents=True)
             (source / "go.mod").write_text("module wrong.example/module\n")
             destination = root / "vendor/github.com/openconfig/ygot"
@@ -41,7 +46,7 @@ class SharedGoOwnerTest(unittest.TestCase):
             for result in ["", "/tmp/owner\n", "external/../owner\n",
                            "external/owner+\nexternal/other+\n", "external/owner+\n"]:
                 with self.subTest(result=result), self.assertRaises(AssertionError):
-                    vendor_owner(Mock(return_value=result), root / "exec", root / "vendor",
+                    vendor_owner(Mock(return_value=result), execution, root / "vendor",
                                  "github.com/openconfig/ygot", "@owner//ygot:ygot")
                 self.assertEqual(sentinel.read_text(), "package original\n")
 

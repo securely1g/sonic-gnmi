@@ -69,7 +69,10 @@ def vendor_owner(bazel, execution, vendor, module, target):
     # The existing runner retains stdout and diagnostics in one query log.
     roots = [line for line in output.splitlines() if line.startswith("external/")]
     assert len(roots) == 1 and re.fullmatch(r"external/[A-Za-z0-9_.+~-]+", roots[0]), roots
-    source = execution / roots[0]
+    # cquery fetches the repository without necessarily adding it to the
+    # execution symlink forest. Read the complete patched source from the
+    # output base, where Bazel stores its fetched repositories.
+    source = execution.parent.parent / roots[0]
     assert re.search(r"(?m)^module\s+" + re.escape(module) + r"\s*$",
                      (source / "go.mod").read_text()), (module, source)
     destination = vendor / module

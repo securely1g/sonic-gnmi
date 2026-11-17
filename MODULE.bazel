@@ -147,6 +147,7 @@ go_patches.module_override(
 
 # Reuse the shared target APT set for the native Python embedding and PAM APIs.
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+apt.import_lock(lock = "@sonic_build_infra//apt:apt.lock.json")
 apt.install(
     dependency_set = "trixie",
     packages = [
